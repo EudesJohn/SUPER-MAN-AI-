@@ -177,6 +177,12 @@ docs/          ENVIRONMENT, ARCHITECTURE, ROADMAP
 config.yaml    central configuration (llm, search, cad, eda, db, execution, security)
 ```
 
+## License
+
+MIT — voir [LICENSE](LICENSE). Les livrables d'ingénierie générés restent
+soumis à validation humaine qualifiée avant fabrication (note dans LICENSE
+et avertissements intégrés).
+
 ## Principles (non-negotiable)
 
 1. The LLM never performs a calculation a deterministic engine can do.
