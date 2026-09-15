@@ -10,6 +10,9 @@ export default function STLViewer({ files }: { files: CadFileInfo[] }) {
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Group | null>(null);
   const [visible, setVisible] = useState<Record<string, boolean>>({});
+  const [spin, setSpin] = useState(true);        // turntable animation
+  const spinRef = useRef(spin);
+  spinRef.current = spin;
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -118,6 +121,7 @@ export default function STLViewer({ files }: { files: CadFileInfo[] }) {
     let raf = 0;
     const animate = () => {
       raf = requestAnimationFrame(animate);
+      if (spinRef.current && !dragging) theta += 0.004; // turntable, paused while user drags
       const target = radius || 12;
       camera.position.set(
         target * Math.sin(phi) * Math.cos(theta),
@@ -141,18 +145,34 @@ export default function STLViewer({ files }: { files: CadFileInfo[] }) {
     };
   }, [files]);
 
-  // Apply visibility toggles.
+  // Apply visibility toggles + electrical-circuit pulse (harness glow).
   useEffect(() => {
     const root = sceneRef.current;
     if (!root) return;
-    root.traverse((o) => {
-      const mesh = o as THREE.Mesh;
-      if (mesh.isMesh && mesh.name) {
+    let raf = 0;
+    const tick = () => {
+      raf = requestAnimationFrame(tick);
+      const t = 0.5 + 0.5 * Math.sin(performance.now() / 240); // 0..1 slow pulse
+      root.traverse((o) => {
+        const mesh = o as THREE.Mesh;
+        if (!mesh.isMesh || !mesh.name) return;
         const key = files.find((f) => f.path === mesh.name)?.path ?? "";
-        const g = key.includes("tractor_body") ? "body" : key.includes("tractor_harness") ? "harness" : null;
-        if (g) mesh.visible = visible[g] !== false;
-      }
-    });
+        const isHarness = key.includes("harness");
+        const isBody = key.includes("_body");
+        if (isHarness) {
+          mesh.visible = visible["harness"] !== false;
+          const mat = mesh.material as THREE.MeshStandardMaterial;
+          if (mat && mat.emissive) {
+            mat.emissive = new THREE.Color(0xff5522);
+            mat.emissiveIntensity = 0.25 + 0.75 * t; // circuit "alive"
+          }
+        } else if (isBody) {
+          mesh.visible = visible["body"] !== false;
+        }
+      });
+    };
+    tick();
+    return () => cancelAnimationFrame(raf);
   }, [visible, files]);
 
   const chip = (label: string, key: string, color: string) => (
@@ -180,13 +200,29 @@ export default function STLViewer({ files }: { files: CadFileInfo[] }) {
     <div>
       <div ref={mountRef} style={{ borderRadius: 8, overflow: "hidden" }} />
       <div style={{ marginTop: 6 }}>
+        <button
+          onClick={() => setSpin((s) => !s)}
+          style={{
+            border: "2px solid #4a90d9",
+            borderRadius: 6,
+            padding: "2px 10px",
+            marginRight: 8,
+            cursor: "pointer",
+            background: spin ? "#1d3a55" : "#1d2026",
+            color: "#ddd",
+            fontSize: 12,
+          }}
+          title="Animation : rotation automatique du produit"
+        >
+          {spin ? "⏸ Arrêter la rotation" : "▶ Faire tourner le produit"}
+        </button>
         <span className="dim" style={{ marginRight: 8 }}>Clic sur une pièce = masquer/afficher :</span>
-        {chip("Capot (corps)", "body", "#4caf50")}
-        {chip("Faisceau", "harness", "#e8590c")}
+        {chip("Carrosserie / Capot", "body", "#4caf50")}
+        {chip("Circuit électrique", "harness", "#e8590c")}
       </div>
       <p className="dim">
-        Glisser = pivoter · Molette = zoom · Le capot se masque pour voir le circuit
-        électrique routé en 3D à l'intérieur.
+        Glisser = pivoter · Molette = zoom · Le circuit électrique pulse à l'intérieur
+        ; masquez la carrosserie pour le voir routé en 3D.
       </p>
     </div>
   );
