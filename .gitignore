@@ -1,0 +1,18 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.sqlite
+*.db
+workspace/
+dist/
+build/
+.env
+
+# Local runtime artifacts (never commit)
+*.log
+*.json.tmp
+last_prj.txt
+screenshots/
+node_modules/
+frontend/dist/

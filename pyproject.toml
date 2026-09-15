@@ -1,0 +1,16 @@
+[project]
+name = "ai-engineer"
+version = "0.1.0"
+description = "AI ENGINEER - an agentic engineering platform: requirements, planning, calculation, verification, traceability."
+requires-python = ">=3.12"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["core*", "providers*", "tools_lib*", "apps*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"

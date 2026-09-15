@@ -1,0 +1,34 @@
+llm:
+  provider: nvidia        # mock | nvidia | openai | anthropic
+  # Modele verifie appelable (2026-09-15). La liste des modeles change chez
+  # NVIDIA: pour la rafraichir -> GET /v1/models avec votre cle.
+  model: meta/llama-3.2-11b-vision-instruct
+  api_key_env: NVIDIA_API_KEY
+
+search:
+  provider: duckduckgo    # none | duckduckgo | serper (serper needs SERPER_API_KEY)
+  enabled: true
+
+cad:
+  provider: null          # null | solidworks | opencascade  (detected at runtime)
+  solidworks_path: null
+
+eda:
+  provider: null          # null | kicad (detected at runtime)
+  kicad_path: null
+
+database:
+  provider: sqlite
+  url: sqlite:///ai_engineer.db
+
+storage:
+  provider: local
+  root: workspace
+
+execution:
+  mode: supervised        # assisted | supervised | autonomous
+  max_retries: 2
+
+security:
+  sandbox: true
+  approval_required: true
